@@ -5,7 +5,7 @@ Micra, GS3).** A beautiful little device that adds an analog boiler-temp dial,
 shot timer, and easy-to-reach controls for all your machines settings (power,
 steam, pre-brew, backflush). To make your own, you just need a ~$50 device and
 a USB-C cable. You can then install this firmware directly
-[from your browser](https://felixrieseberg.github.io/strumento/).
+[from your browser](https://joesanfilippo.github.io/strumento/).
 
 <p>
   <a href="https://felixrieseberg.github.io/strumento/"><img src="web/img/timer.jpg" alt="Strumento showing the shot timer" width="31%"></a>
@@ -37,7 +37,7 @@ desktop running **Chrome or Edge** for the web installer.
 ### Install
 
 1. Plug the Core2 into your computer over USB-C.
-2. Open the **[web installer](https://felixrieseberg.github.io/strumento/)** in
+2. Open the **[web installer](https://joesanfilippo.github.io/strumento/)** in
    Chrome or Edge.
 3. Click **Connect**, pick the `USB Single Serial` / `CP2104` port, then
    **Install Strumento**. Takes about 90 seconds.
