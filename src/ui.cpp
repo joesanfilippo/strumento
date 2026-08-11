@@ -352,6 +352,13 @@ static void renderHome(const lmcloud::State& s){
     default: homeDial(s,on,temp,cstat);
   }
 
+  // ── make the big dial/tally/clock tappable to toggle power ──
+  // satisfies: tap circle to WAKE when off/standby, tap to STANDBY when on
+  {
+    const int cx = W/2, cy = 106, r = 72;
+    g_btns.push_back({cx - r, cy - r, r*2, r*2, [on]{ lmcloud::setPower(!on); }});
+  }
+
   // ── infoline + page dots (the dots double as the divider) ──
   const int ly=KEY_Y-12, dotW=(HOME_PAGES-1)*10;
   for(int i=0;i<HOME_PAGES;++i)
