@@ -420,7 +420,6 @@ static void renderHome(const lmcloud::State& s){
   }
 
   keys({
-    { on?"STANDBY":"WAKE", [on]{ lmcloud::setPower(!on); } },
     { "MACHINE", []{ g_scr=Screen::Controls; g_ctrlScroll=0; g_dirty=true; } },
     { "STATS",   []{ g_scr=Screen::Stats;    g_ctrlScroll=0; g_dirty=true; } },
   });
