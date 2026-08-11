@@ -22,7 +22,9 @@ void Settings::load() {
   shotHoldIndex = p_.getUChar("sh", cfg::DEF_SHOT_HOLD_INDEX);
   if (shotHoldIndex >= cfg::SHOT_HOLD_COUNT) shotHoldIndex = cfg::DEF_SHOT_HOLD_INDEX;
   dimSec     = p_.getUChar("ds", 30);
-  sleepMin   = p_.getUChar("sm", 2);
+  sleepMin   = p_.getUChar("sm", 10);
+  // migrate old quick-sleep values to 10m min (OFF=0 preserved)
+  if (sleepMin && sleepMin < 10) { sleepMin = 10; p_.putUChar("sm", sleepMin); }
   instId   = p_.getString("iid", "");
   size_t n = p_.getBytes("epk", ecPriv, sizeof ecPriv);
   ecPrivValid = (n == sizeof ecPriv);

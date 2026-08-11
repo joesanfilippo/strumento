@@ -78,7 +78,7 @@ static bool     g_batChg       = false;
 static bool     g_dimmed       = false;
 static uint32_t g_lastActivity = 0;
 static constexpr uint8_t DIM_OPTS[]   = {0,15,30,60,120};
-static constexpr uint8_t SLEEP_OPTS[] = {0,1,2,5,10,30};
+static constexpr uint8_t SLEEP_OPTS[] = {0,10,15,30,60}; // Core2: min 10m enforced, OFF cycles clean
 template<size_t N>
 static uint8_t nextOpt(const uint8_t (&a)[N], uint8_t cur){
   for(size_t i=0;i<N;++i) if(a[i]==cur) return a[(i+1)%N];
@@ -872,7 +872,10 @@ void tick(){
   if (!g_dimmed && settings.dimSec && idle > (uint32_t)settings.dimSec*1000){
     g_dimmed=true; M5.Display.setBrightness(BRIGHT_DIM);
   }
-  if (settings.sleepMin && idle > (uint32_t)settings.sleepMin*60000) goToSleep();
+  // Core2 auto-sleep: respect OFF (0), but enforce min 10m for any on-value — 2m is too quick on battery
+  uint8_t effSleep = settings.sleepMin;
+  if (effSleep && effSleep < 10) effSleep = 10;
+  if (effSleep && idle > (uint32_t)effSleep*60000) goToSleep();
 
   if (t.wasPressed()){
     g_dragging=false; g_dragStartX=t.x; g_dragStartY=t.y;
