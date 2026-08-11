@@ -108,7 +108,15 @@ static int64_t epochMs() {
 }
 static String fmtClock() {
   time_t now = time(nullptr); struct tm t; localtime_r(&now,&t);
-  char b[8]; snprintf(b,sizeof b,"%02d:%02d",t.tm_hour,t.tm_min); return b;
+  char b[16];
+  if (settings.is24Hour) {
+    snprintf(b,sizeof b,"%02d:%02d",t.tm_hour,t.tm_min);
+  } else {
+    int h12 = t.tm_hour % 12; if (h12==0) h12=12;
+    const char* ap = (t.tm_hour < 12) ? "AM" : "PM";
+    snprintf(b,sizeof b,"%d:%02d %s",h12,t.tm_min,ap);
+  }
+  return String(b);
 }
 static String ago(int64_t atMs) {
   if (!atMs) return "—";
@@ -694,6 +702,9 @@ static void renderSettings(){
   }); y+=40;
   toggleRow(y,"FAHRENHEIT",settings.fahrenheit,[]{
     settings.fahrenheit=!settings.fahrenheit; settings.save(); g_dirty=true;
+  }); y+=40;
+  toggleRow(y,"24H CLOCK",settings.is24Hour,[]{
+    settings.is24Hour=!settings.is24Hour; settings.save(); g_dirty=true;
   }); y+=40;
   settingRow(y,"timezone", cfg::timeZoneChoice(settings.timeZoneIndex).label, false, []{
     settings.timeZoneIndex = (settings.timeZoneIndex + 1) % cfg::TIME_ZONE_COUNT;

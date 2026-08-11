@@ -17,6 +17,7 @@ void Settings::load() {
   lmSerial = p_.getString("ls", cfg::DEF_LM_SERIAL);
   darkMode   = p_.getBool("dm", false);
   fahrenheit = p_.getBool("fh", false);
+  is24Hour   = p_.getBool("hr24", true);
   timeZoneIndex = p_.getUChar("tz", cfg::DEF_TIME_ZONE_INDEX);
   if (timeZoneIndex >= cfg::TIME_ZONE_COUNT) timeZoneIndex = cfg::DEF_TIME_ZONE_INDEX;
   shotHoldIndex = p_.getUChar("sh", cfg::DEF_SHOT_HOLD_INDEX);
@@ -42,6 +43,7 @@ void Settings::save() {
   p_.putString("ls", lmSerial);
   p_.putBool  ("dm", darkMode);
   p_.putBool  ("fh", fahrenheit);
+  p_.putBool  ("hr24", is24Hour);
   p_.putUChar ("tz", timeZoneIndex);
   p_.putUChar ("sh", shotHoldIndex);
   p_.putUChar ("ds", dimSec);

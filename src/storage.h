@@ -8,6 +8,7 @@ struct Settings {
   String lmUser, lmPass, lmSerial;
   bool   darkMode   = false;
   bool   fahrenheit = false;
+  bool   is24Hour   = true;  // true=24h, false=12h with AM/PM
   uint8_t timeZoneIndex = cfg::DEF_TIME_ZONE_INDEX;
   uint8_t shotHoldIndex = cfg::DEF_SHOT_HOLD_INDEX;
   uint8_t dimSec    = 30;    // backlight dim after N s idle (0 = never)
