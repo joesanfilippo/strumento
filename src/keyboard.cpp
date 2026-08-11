@@ -25,6 +25,7 @@ void drawKey(M5GFX& d,const Key& k,bool hi=false){
 
 bool keyboardPrompt(M5GFX& d,const char* title,String& value,bool mask){
   int layer=0; String buf=value;
+  bool hidden = mask; // start hidden when it's a password, toggleable via eye
   std::vector<Key> keys;
   auto layout=[&]{
     keys.clear();
@@ -43,9 +44,19 @@ bool keyboardPrompt(M5GFX& d,const char* title,String& value,bool mask){
     d.drawFastHLine(12,24,W-24,BRASS);
     d.setFont(&fonts::FreeSerifItalic9pt7b); d.setTextColor(INK_40);
     d.setTextDatum(top_left); d.drawString(title,14,6);
+    // eye toggle — only for password fields
+    if(mask){
+      int bx = 272, by = 4, bw = 44, bh = 18;
+      d.fillRect(bx,by,bw,bh, hidden?PAPER:LM_RED);
+      d.drawRect(bx,by,bw,bh, BRASS);
+      d.setFont(&fonts::FreeSans9pt7b);
+      d.setTextColor(hidden?INK:PAPER);
+      d.setTextDatum(middle_center);
+      d.drawString(hidden?"SHOW":"HIDE", bx+bw/2, by+bh/2);
+    }
     d.fillRect(12,32,W-24,28,PAPER); d.drawRect(12,32,W-24,28,BRASS);
     d.setFont(&fonts::FreeMono9pt7b); d.setTextColor(INK);
-    String s; if(mask) for(size_t i=0;i<buf.length();++i) s+='*'; else s=buf;
+    String s; if(hidden) for(size_t i=0;i<buf.length();++i) s+='*'; else s=buf;
     if(s.length()>26) s="…"+s.substring(s.length()-25);
     d.setTextDatum(middle_left); d.drawString(s,18,46);
     for(auto&k:keys) drawKey(d,k);
@@ -53,18 +64,27 @@ bool keyboardPrompt(M5GFX& d,const char* title,String& value,bool mask){
   layout(); draw();
   for(;;){
     M5.update(); auto t=M5.Touch.getDetail();
-    if(t.wasPressed()) for(auto&k:keys)
-      if(t.x>=k.x&&t.x<k.x+k.w&&t.y>=k.y&&t.y<k.y+k.h){
-        drawKey(d,k,true); M5.Speaker.tone(2200,12); delay(60); drawKey(d,k,false);
-        if(k.lab){
-          if(!strcmp(k.lab,"abc")){ layer=(layer==0)?1:0; layout(); draw(); }
-          else if(!strcmp(k.lab,"?12")){ layer=(layer<2)?2:(layer==2)?3:0; layout(); draw(); }
-          else if(!strcmp(k.lab,"del")){ if(buf.length()) buf.remove(buf.length()-1); draw(); }
-          else if(!strcmp(k.lab,"OK")){ value=buf; return true; }
-          else if(!strcmp(k.lab,"cancel")) return false;
-        } else { buf+=k.ch; draw(); }
-        break;
+    if(t.wasPressed()){
+      // eye tap
+      if(mask && t.x>=272 && t.x<316 && t.y>=4 && t.y<22){
+        hidden = !hidden;
+        M5.Speaker.tone(2200,12);
+        draw();
+        continue;
       }
+      for(auto&k:keys)
+        if(t.x>=k.x&&t.x<k.x+k.w&&t.y>=k.y&&t.y<k.y+k.h){
+          drawKey(d,k,true); M5.Speaker.tone(2200,12); delay(60); drawKey(d,k,false);
+          if(k.lab){
+            if(!strcmp(k.lab,"abc")){ layer=(layer==0)?1:0; layout(); draw(); }
+            else if(!strcmp(k.lab,"?12")){ layer=(layer<2)?2:(layer==2)?3:0; layout(); draw(); }
+            else if(!strcmp(k.lab,"del")){ if(buf.length()) buf.remove(buf.length()-1); draw(); }
+            else if(!strcmp(k.lab,"OK")){ value=buf; return true; }
+            else if(!strcmp(k.lab,"cancel")) return false;
+          } else { buf+=k.ch; draw(); }
+          break;
+        }
+    }
     delay(8);
   }
 }
