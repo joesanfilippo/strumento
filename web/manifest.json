@@ -1,6 +1,6 @@
 {
-  "name": "Strumento",
-  "version": "1.0",
+  "name": "Strumento (joesanfilippo fork)",
+  "version": "1.0-68131d9-backflush-sleep10",
   "new_install_prompt_erase": true,
   "builds": [
     {
