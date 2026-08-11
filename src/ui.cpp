@@ -108,13 +108,17 @@ static int64_t epochMs() {
 }
 static String fmtClock() {
   time_t now = time(nullptr); struct tm t; localtime_r(&now,&t);
-  char b[16];
+  static const char* WD[]={"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+  static const char* MO[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+  const char* wd = (t.tm_wday>=0 && t.tm_wday<7) ? WD[t.tm_wday] : "---";
+  const char* mo = (t.tm_mon>=0  && t.tm_mon<12) ? MO[t.tm_mon]   : "---";
+  char b[32];
   if (settings.is24Hour) {
-    snprintf(b,sizeof b,"%02d:%02d",t.tm_hour,t.tm_min);
+    snprintf(b,sizeof b,"%s %s %d %02d:%02d",wd,mo,t.tm_mday,t.tm_hour,t.tm_min);
   } else {
     int h12 = t.tm_hour % 12; if (h12==0) h12=12;
     const char* ap = (t.tm_hour < 12) ? "AM" : "PM";
-    snprintf(b,sizeof b,"%d:%02d %s",h12,t.tm_min,ap);
+    snprintf(b,sizeof b,"%s %s %d %d:%02d %s",wd,mo,t.tm_mday,h12,t.tm_min,ap);
   }
   return String(b);
 }
@@ -262,17 +266,18 @@ static void header(const lmcloud::State& s, bool forceDark=false) {
   int ww = g_can.textWidth(wm);
   g_can.fillRect(W/2-ww/2-8,10,ww+16,20,bg);
   g_can.drawString(wm, W/2, 19);
-  // status dot · clock — clear hairline behind both
+  // left: status dot + battery far left to keep right side compact for date+time
   uint16_t dot = (s.net==lmcloud::Net::WsLive)?BRASS_HI:
                  (s.net>=lmcloud::Net::AuthOk)?INK_40:LM_RED;
-  g_can.fillRect(10,16,16,8,bg);
+  g_can.fillRect(8,12,52,16,bg);                 // clears dot + battery zone over hairline
   g_can.drawSpot(18,19,2,dot);
+  batteryGlyph(52, 19, bg, fg);                 // far left, rx=52 (~30-52)
+  // right: date + clock
   g_can.setFont(&F_LABEL_SM); g_can.setTextColor(fg);
   g_can.setTextDatum(middle_right);
   String ck=fmtClock(); int cw=g_can.textWidth(ck);
-  g_can.fillRect(W-14-cw-38,12,cw+44,16,bg);      // clears clock + battery zone
+  g_can.fillRect(W-14-cw-8,12,cw+16,16,bg);      // clears clock/date zone
   g_can.drawString(ck, W-14, 19);
-  batteryGlyph(W-14-cw-10, 19, bg, fg);
 }
 
 // ── piano-key bottom bar ─────────────────────────────────────────────────────
