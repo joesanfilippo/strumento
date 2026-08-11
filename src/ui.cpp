@@ -311,17 +311,41 @@ static void homeDial(const lmcloud::State& s,bool on,float temp,
 }
 
 static void homeTally(const lmcloud::State& s){
+  // Now: big BACKFLUSH trigger — same bezel size, tap-anywhere in circle to arm
   const int cx=W/2, cy=106, r=66;
   bezel(cx,cy,r,FACE());
-  char n[10]; snprintf(n,sizeof n,"%d",s.totalCoffee);
-  g_can.setFont(&F_NUM_LG); g_can.setTextColor(FG());
-  g_can.setTextDatum(middle_center);
-  g_can.drawString(n,cx,cy-8);
-  tracked(cx,cy+26,"COFFEES",4,INK_40,&F_LABEL,middle_center);
-  // last shot mark on the rim — fraction of a 60s sweep
-  if (s.lastShotSec>0){
-    float a=(-90+constrain(s.lastShotSec,0.f,60.f)*6.f)*DEG_TO_RAD;
-    g_can.drawSpot(cx+cosf(a)*(r-6), cy+sinf(a)*(r-6), 3, LM_RED);
+  if (s.backflush==lmcloud::BackflushStatus::Requested){
+    uint32_t el = millis()-s.bfPhaseAtMs;
+    int left = (s.bfPhaseAtMs && el<cfg::BACKFLUSH_ARM_MS)
+               ? (int)((cfg::BACKFLUSH_ARM_MS-el+999)/1000) : 0;
+    if (left) {
+      char n[6]; snprintf(n,sizeof n,"%d",left);
+      g_can.setFont(&F_NUM_LG); g_can.setTextColor(LM_RED);
+      g_can.setTextDatum(middle_center);
+      g_can.drawString(n,cx,cy-8);
+    } else {
+      g_can.setFont(&F_NUM_LG); g_can.setTextColor(LM_RED);
+      g_can.setTextDatum(middle_center);
+      g_can.drawString("!",cx,cy-8);
+    }
+    tracked(cx,cy+18,"MOVE",3,LM_RED,&F_LABEL,middle_center);
+    tracked(cx,cy+30,"PADDLE",3,LM_RED,&F_LABEL,middle_center);
+  } else if (s.backflush==lmcloud::BackflushStatus::Cleaning){
+    bool flushing = s.machine==lmcloud::MachineStatus::Brewing;
+    g_can.setFont(&F_LABEL); g_can.setTextColor(LM_RED);
+    g_can.setTextDatum(middle_center);
+    tracked(cx,cy-6, flushing?"FLUSHING":"CLEANING",3,LM_RED,&F_LABEL,middle_center);
+    // pulsing dot
+    int pulse = (millis()/300)%2 ? 4 : 6;
+    g_can.drawSpot(cx,cy+24,pulse,LM_RED);
+  } else {
+    // idle — big invite
+    g_can.setFont(&F_NUM_LG); g_can.setTextColor(LM_RED);
+    g_can.setTextDatum(middle_center);
+    // simple drop icon: rounded rect paddle + arrow
+    g_can.fillSmoothCircle(cx,cy-14,10,LM_RED);
+    g_can.fillSmoothCircle(cx,cy-14,7,FACE());
+    tracked(cx,cy+22,"BACKFLUSH",3,LM_RED,&F_LABEL,middle_center);
   }
 }
 
@@ -352,11 +376,20 @@ static void renderHome(const lmcloud::State& s){
     default: homeDial(s,on,temp,cstat);
   }
 
-  // ── make the big dial/tally/clock tappable to toggle power ──
-  // satisfies: tap circle to WAKE when off/standby, tap to STANDBY when on
+  // ── make the big dial tappable for power, tally tappable for backflush ──
   {
     const int cx = W/2, cy = 106, r = 72;
-    g_btns.push_back({cx - r, cy - r, r*2, r*2, [on]{ lmcloud::setPower(!on); }});
+    if (g_homePage==1){
+      // page 1 — whole circle arms backflush (idle only)
+      g_btns.push_back({cx - r, cy - r, r*2, r*2, []{
+        auto &st = lmcloud::state();
+        if (st.backflush==lmcloud::BackflushStatus::Off) lmcloud::startBackflush();
+      }});
+    } else if (g_homePage==0){
+      // page 0 — tap circle to WAKE when off/standby, tap to STANDBY when on
+      g_btns.push_back({cx - r, cy - r, r*2, r*2, [on]{ lmcloud::setPower(!on); }});
+    }
+    // page 2 (clock) — no circle action, just swipe
   }
 
   // ── infoline + page dots (the dots double as the divider) ──
