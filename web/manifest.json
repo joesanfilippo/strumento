@@ -1,13 +1,1 @@
-{
-  "name": "Strumento (joesanfilippo fork)",
-  "version": "1.0-68131d9-backflush-sleep10",
-  "new_install_prompt_erase": true,
-  "builds": [
-    {
-      "chipFamily": "ESP32",
-      "parts": [
-        { "path": "strumento-m5core2.bin", "offset": 0 }
-      ]
-    }
-  ]
-}
+{"builds":[{"chipFamily":"ESP32","parts":[{"offset":4096,"path":"bootloader.bin"},{"offset":32768,"path":"partitions.bin"},{"offset":57344,"path":"boot_app0.bin"},{"offset":65536,"path":"strumento-m5core2-app.bin"}]}],"name":"Strumento (joesanfilippo fork)","new_install_prompt_erase":false,"version":"1.0-3d20484-date-batleft"}
